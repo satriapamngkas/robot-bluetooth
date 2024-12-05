@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_application/button.dart';
+import 'package:flutter_application/pages/control.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final _bluetooth = FlutterBluetoothSerial.instance;
   bool _bluetoothState = false;
+  bool _manualState = false;
   bool _isConnecting = false;
   BluetoothConnection? _connection;
   List<BluetoothDevice> _devices = [];
@@ -77,66 +79,180 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('assets/robot_hand.jpg'),
+          image: AssetImage('assets/robot_arm_not_hd.png'),
           fit: BoxFit.cover,
         ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          centerTitle: true,
-          title: const Text('ZonaSort'),
+          title: const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'ZonaSort',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'Kamis, 5 Desember 2024',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white,
+                  Colors.white.withOpacity(0.0),
+                  // Colors.transparent,
+                ],
+              ),
+            ),
+          ),
         ),
-        body: Column(
-          children: [
-            _controlBT(),
-            _infoDevice(),
-            Expanded(child: _listDevices()),
-            // _inputSerial(),
-            pressButton(),
-          ],
+        body: Center(
+          child: SingleChildScrollView(
+            child: Center(
+              child: Column(
+                // mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // const SizedBox(
+                  //   height: 20,
+                  // ),
+                  !_bluetoothState
+                      ? _controlBT()
+                      : Column(
+                          children: [
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            _infoDevice(),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            SafeArea(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(18),
+                                    color: Color.fromRGBO(18, 132, 233, 0.65)),
+                                width: MediaQuery.of(context).size.width * 0.9,
+                                // height: MediaQuery.of(context).size.height * 0.1,
+                                child: _listDevices(),
+                              ),
+                            ),
+                          ],
+                        ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _controlBT() {
-    return SwitchListTile(
-      value: _bluetoothState,
-      onChanged: (bool value) async {
-        if (value) {
+    return IconButton(
+      onPressed: () {
+        setState(() async {
           await _bluetooth.requestEnable();
-        } else {
-          await _bluetooth.requestDisable();
-        }
+        });
       },
-      tileColor: Colors.green,
-      title: Text(
-        _bluetoothState ? "Bluetooth aktif" : "Bluetooth mati",
-        style: const TextStyle(color: Colors.white),
-      ),
+      icon: Container(
+          padding: EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            color: Color.fromRGBO(18, 132, 233, 0.90),
+          ),
+          width: MediaQuery.of(context).size.width * 0.6,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color.fromRGBO(0, 82, 246, 1),
+                ),
+                child: const Icon(
+                  Icons.bluetooth,
+                  color: Colors.white,
+                  size: 50,
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Text(
+                'Nyalakan\nBluetooth!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.center,
+              )
+            ],
+          )
+          // child: SwitchListTile(
+          //   // activeColor: Color.fromRGBO(48, 23, 242, 1),
+          //   value: _bluetoothState,
+          //   onChanged: (bool value) async {
+          //     if (value) {
+          //       await _bluetooth.requestEnable();
+          //     } else {
+          //       await _bluetooth.requestDisable();
+          //     }
+          //   },
+          //   // tileColor: Colors.green,
+          //   title: Text(
+          //     _bluetoothState ? "Bluetooth aktif" : "Bluetooth mati",
+          //     style: const TextStyle(color: Colors.white),
+          //   ),
+          // ),
+          ),
     );
   }
 
   Widget _infoDevice() {
-    return ListTile(
-      tileColor: Colors.black12,
-      title: Text("Device: ${_deviceConnected?.name ?? "tidak ada device"}"),
-      trailing: _connection?.isConnected ?? false
-          ? TextButton(
-              onPressed: () async {
-                await _connection?.finish();
-                setState(() => _deviceConnected = null);
-              },
-              child: const Text("Disconection"),
-            )
-          : TextButton(
-              onPressed: _getDevices,
-              child: const Text("Scan Device"),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: Color.fromRGBO(18, 132, 233, 0.94)),
+      width: MediaQuery.of(context).size.width * 0.9,
+      child: ListTile(
+        tileColor: Colors.black12,
+        title: Text(
+          "Device: ${_deviceConnected?.name ?? "Belum terhubung"}",
+          style: const TextStyle(color: Colors.white),
+        ),
+        trailing: _connection?.isConnected ?? false
+            ? TextButton(
+                onPressed: () async {
+                  await _connection?.finish();
+                  setState(() => _deviceConnected = null);
+                },
+                child: const Text(
+                  "Disconnect",
+                  style: TextStyle(color: Colors.white),
+                ),
+              )
+            : TextButton(
+                onPressed: _getDevices,
+                child: const Text(
+                  "Detect Device",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+      ),
     );
   }
 
@@ -145,27 +261,42 @@ class _MainPageState extends State<MainPage> {
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
             child: Container(
-              color: Colors.grey.shade100,
+              color: Color.fromRGBO(30, 144, 243, 94),
               child: Column(
                 children: [
                   ...[
                     for (final device in _devices)
                       ListTile(
-                        title: Text(device.name ?? device.address),
+                        title: Text(
+                          device.name ?? device.address,
+                          style: TextStyle(color: Colors.white),
+                        ),
                         trailing: TextButton(
-                          child: const Text('Menghubungkan'),
+                          child: const Text(
+                            'Hubungkan',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           onPressed: () async {
-                            setState(() => _isConnecting = true);
+                            // setState(() => _isConnecting = true);
 
-                            _connection = await BluetoothConnection.toAddress(
-                                device.address);
-                            _deviceConnected = device;
-                            _devices = [];
-                            _isConnecting = false;
+                            // _connection = await BluetoothConnection.toAddress(
+                            //     device.address);
+                            // _deviceConnected = device;
+                            // _devices = [];
+                            // _isConnecting = false;
 
-                            _receiveData();
+                            // _receiveData();
 
-                            setState(() {});
+                            setState(() {
+                              _isConnecting = false;
+                              Navigator.pushReplacement<void, void>(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (BuildContext context) =>
+                                      const Control(),
+                                ),
+                              );
+                            });
                           },
                         ),
                       )
@@ -188,38 +319,6 @@ class _MainPageState extends State<MainPage> {
           "Tekan Button (x$times)",
           style: const TextStyle(fontSize: 18.0),
         ),
-      ),
-    );
-  }
-
-  Widget pressButton() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 8.0),
-      color: Colors.black12,
-      child: Column(
-        children: [
-          const Text('Kontrol LED', style: TextStyle(fontSize: 18.0)),
-          const SizedBox(height: 16.0),
-          Row(
-            children: [
-              Expanded(
-                child: Buttons(
-                  text: "LED ON",
-                  color: Colors.blue,
-                  onTap: () => _sendData("1"),
-                ),
-              ),
-              const SizedBox(width: 8.0),
-              Expanded(
-                child: Buttons(
-                  color: Colors.red,
-                  text: "LED OFF",
-                  onTap: () => _sendData("0"),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

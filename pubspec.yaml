@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bluetooth_serial: ^0.4.0
+  google_fonts: ^6.2.1
   permission_handler: ^11.0.1
 
 dev_dependencies:
@@ -23,3 +24,10 @@ flutter:
   assets:
     - assets/robot_hand.jpg
     - assets/robot_arm.jpg
+    - assets/robot_arm_not_hd.png
+    - assets/up.png
+    - assets/down.png
+    - assets/left.png
+    - assets/right.png
+    - assets/sortir_icon.png
+    - assets/controller.png

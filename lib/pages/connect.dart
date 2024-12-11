@@ -30,7 +30,7 @@ class _ConnectState extends State<Connect> {
                 ),
               ),
               Text(
-                'Kamis, 5 Desember 2024',
+                'Kamis, 12 Desember 2024',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -73,7 +73,7 @@ class _ConnectState extends State<Connect> {
                     child: Container(
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(18),
-                          color: Color.fromRGBO(18, 132, 233, 0.65)),
+                          color: const Color.fromRGBO(18, 132, 233, 0.65)),
                       width: MediaQuery.of(context).size.width * 0.9,
                       // height: MediaQuery.of(context).size.height * 0.1,
                       // child: _listDevices(),

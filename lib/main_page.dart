@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_application/button.dart';
 import 'package:flutter_application/pages/control.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
@@ -98,7 +99,7 @@ class _MainPageState extends State<MainPage> {
                 ),
               ),
               Text(
-                'Kamis, 5 Desember 2024',
+                'Kamis, 12 Desember 2024',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -144,7 +145,8 @@ class _MainPageState extends State<MainPage> {
                               child: Container(
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(18),
-                                    color: Color.fromRGBO(18, 132, 233, 0.65)),
+                                    color: const Color.fromRGBO(
+                                        18, 132, 233, 0.65)),
                                 width: MediaQuery.of(context).size.width * 0.9,
                                 // height: MediaQuery.of(context).size.height * 0.1,
                                 child: _listDevices(),
@@ -169,10 +171,10 @@ class _MainPageState extends State<MainPage> {
         });
       },
       icon: Container(
-          padding: EdgeInsets.all(40),
+          padding: const EdgeInsets.all(40),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            color: Color.fromRGBO(18, 132, 233, 0.90),
+            color: const Color.fromRGBO(18, 132, 233, 0.90),
           ),
           width: MediaQuery.of(context).size.width * 0.6,
           child: Column(
@@ -226,7 +228,7 @@ class _MainPageState extends State<MainPage> {
     return Container(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
-          color: Color.fromRGBO(18, 132, 233, 0.94)),
+          color: const Color.fromRGBO(18, 132, 233, 0.94)),
       width: MediaQuery.of(context).size.width * 0.9,
       child: ListTile(
         tileColor: Colors.black12,
@@ -261,7 +263,7 @@ class _MainPageState extends State<MainPage> {
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
             child: Container(
-              color: Color.fromRGBO(30, 144, 243, 94),
+              color: const Color.fromRGBO(30, 144, 243, 94),
               child: Column(
                 children: [
                   ...[
@@ -269,7 +271,7 @@ class _MainPageState extends State<MainPage> {
                       ListTile(
                         title: Text(
                           device.name ?? device.address,
-                          style: TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Colors.white),
                         ),
                         trailing: TextButton(
                           child: const Text(

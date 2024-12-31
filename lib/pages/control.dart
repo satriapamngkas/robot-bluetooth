@@ -13,18 +13,18 @@ class Control extends StatefulWidget {
 }
 
 class _ControlState extends State<Control> {
-  bool _manualState = false;
-  final _bluetooth = FlutterBluetoothSerial.instance;
-  bool _bluetoothState = false;
-  bool _isConnecting = false;
-  BluetoothConnection? _connection;
-  List<BluetoothDevice> _devices = [];
-  BluetoothDevice? _deviceConnected;
+  bool isManual = false;
+  final bluetooth = FlutterBluetoothSerial.instance;
+  bool bluetoothState = false;
+  bool isConnecting = false;
+  BluetoothConnection? connection;
+  List<BluetoothDevice> devices = [];
+  BluetoothDevice? deviceConnected;
   int times = 0;
 
   void _sendData(String data) {
-    if (_connection?.isConnected ?? false) {
-      _connection?.output.add(ascii.encode(data));
+    if (connection?.isConnected ?? false) {
+      connection?.output.add(ascii.encode(data));
     }
   }
 
@@ -40,6 +40,7 @@ class _ControlState extends State<Control> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -50,7 +51,7 @@ class _ControlState extends State<Control> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: _manualState ? 24 : 50,
+          toolbarHeight: isManual ? 24 : 50,
           title: const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -99,24 +100,22 @@ class _ControlState extends State<Control> {
                         borderRadius: BorderRadius.circular(18),
                         color: const Color.fromRGBO(18, 132, 233, 0.65),
                       ),
-                      width: _manualState
-                          ? MediaQuery.of(context).size.width * 0.5
-                          : MediaQuery.of(context).size.width * 0.9,
-                      height: _manualState
-                          ? MediaQuery.of(context).size.height * 0.15
-                          : MediaQuery.of(context).size.height * 0.1,
+                      width: isManual ? size.width * 0.5 : size.width * 0.9,
+                      height: isManual ? size.height * 0.15 : size.height * 0.1,
                       child: SwitchListTile(
                         // activeColor: Color.fromRGBO(48, 23, 242, 1),
-                        value: _manualState,
+                        value: isManual,
                         onChanged: (bool value) {
                           setState(() {
-                            _manualState = value;
-                            if (_manualState) {
+                            isManual = value;
+                            if (isManual) {
+                              _sendData('M');
                               SystemChrome.setPreferredOrientations([
                                 DeviceOrientation.landscapeLeft,
                                 DeviceOrientation.landscapeRight
                               ]);
                             } else {
+                              _sendData('A');
                               SystemChrome.setPreferredOrientations(
                                   [DeviceOrientation.portraitUp]);
                             }
@@ -127,14 +126,14 @@ class _ControlState extends State<Control> {
                           children: [
                             Image.asset(
                               'assets/controller.png',
-                              height: _manualState ? 35 : 70,
+                              height: isManual ? 35 : 70,
                               // width: 70,
                             ),
                             const SizedBox(
                               width: 7,
                             ),
                             Text(
-                              _manualState ? "Mode Manual" : "Mode Otomatis",
+                              isManual ? "Mode Manual" : "Mode Otomatis",
                               style: const TextStyle(color: Colors.white),
                             ),
                           ],
@@ -145,7 +144,7 @@ class _ControlState extends State<Control> {
                       height: 7,
                     ),
                     // _inputSerial(),
-                    _manualState ? pressButton() : sortedAmount(),
+                    isManual ? pressButton() : sortedAmount(),
                   ],
                 ),
               ),
@@ -163,7 +162,7 @@ class _ControlState extends State<Control> {
             borderRadius: BorderRadius.circular(18),
             color: const Color.fromRGBO(18, 132, 233, 0.80)),
         width: MediaQuery.of(context).size.width * 0.9,
-        // height: MediaQuery.of(context).size.height * 0.7,
+        // height: size.height * 0.7,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [

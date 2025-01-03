@@ -30,7 +30,7 @@ class _ConnectState extends State<Connect> {
                 ),
               ),
               Text(
-                'Kamis, 12 Desember 2024',
+                'Kamis, 1 Januari 2025',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

@@ -1,7 +1,4 @@
 import 'dart:convert';
-
-import 'package:flutter/services.dart';
-import 'package:flutter_application/button.dart';
 import 'package:flutter_application/pages/control.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +15,8 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final _bluetooth = FlutterBluetoothSerial.instance;
   bool _bluetoothState = false;
-  bool _manualState = false;
   bool _isConnecting = false;
+  bool _isConnected = false;
   BluetoothConnection? _connection;
   List<BluetoothDevice> _devices = [];
   BluetoothDevice? _deviceConnected;
@@ -99,7 +96,7 @@ class _MainPageState extends State<MainPage> {
                 ),
               ),
               Text(
-                'Kamis, 12 Desember 2024',
+                'Kamis, 2 Januari 2025',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -239,11 +236,21 @@ class _MainPageState extends State<MainPage> {
         trailing: _connection?.isConnected ?? false
             ? TextButton(
                 onPressed: () async {
-                  await _connection?.finish();
-                  setState(() => _deviceConnected = null);
+                  // await _connection?.finish();
+                  // setState(() => _deviceConnected = null);
+                  Navigator.pushReplacement<void, void>(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) => Control(
+                        deviceConnected: _deviceConnected!,
+                        bluetooth: _bluetooth,
+                        connection: _connection!,
+                      ),
+                    ),
+                  );
                 },
                 child: const Text(
-                  "Disconnect",
+                  "Control",
                   style: TextStyle(color: Colors.white),
                 ),
               )
@@ -279,26 +286,33 @@ class _MainPageState extends State<MainPage> {
                             style: TextStyle(color: Colors.white),
                           ),
                           onPressed: () async {
-                            // setState(() => _isConnecting = true);
+                            setState(() => _isConnecting = true);
 
-                            // _connection = await BluetoothConnection.toAddress(
-                            //     device.address);
-                            // _deviceConnected = device;
-                            // _devices = [];
-                            // _isConnecting = false;
-
-                            // _receiveData();
+                            final connection =
+                                await BluetoothConnection.toAddress(
+                                    device.address);
+                            _deviceConnected = device;
+                            _devices = [];
+                            _isConnecting = false;
 
                             setState(() {
+                              _connection = connection;
+                              _isConnected = true;
                               _isConnecting = false;
-                              Navigator.pushReplacement<void, void>(
-                                context,
-                                MaterialPageRoute<void>(
-                                  builder: (BuildContext context) =>
-                                      const Control(),
-                                ),
-                              );
                             });
+
+                            _receiveData();
+
+                            // setState(() {
+                            //   _isConnecting = false;
+                            //   Navigator.pushReplacement<void, void>(
+                            //     context,
+                            //     MaterialPageRoute<void>(
+                            //       builder: (BuildContext context) =>
+                            //           const Control(),
+                            //     ),
+                            //   );
+                            // });
                           },
                         ),
                       )

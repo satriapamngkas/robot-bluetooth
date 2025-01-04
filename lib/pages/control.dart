@@ -23,6 +23,7 @@ class Control extends StatefulWidget {
 
 class _ControlState extends State<Control> {
   bool isManual = false;
+  bool isGrab = false;
   // bool _bluetoothState = false;
   // bool _isConnecting = false;
   int times = 0;
@@ -35,9 +36,8 @@ class _ControlState extends State<Control> {
     }
 
     try {
-      widget.connection.output
-          .add(ascii.encode(data + '\n')); // Menambahkan newline
-      await widget.connection?.output.allSent;
+      widget.connection.output.add(ascii.encode(data));
+      await widget.connection.output.allSent;
       print('Data sent: $data');
     } catch (e) {
       print('Gagal mengirim data: $e');
@@ -223,13 +223,13 @@ class _ControlState extends State<Control> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _sendData('5'),
+                      onPressed: () => _sendData('S'),
                       icon: const Icon(
                         Icons.pause,
 
                         size: 70,
-                        // color: Color.fromRGBO(4, 42, 27, 1),
-                        color: Colors.transparent,
+                        color: Color.fromRGBO(4, 42, 27, 1),
+                        // color: Colors.transparent,
                       ),
                     ),
                     // IconButton(
@@ -322,7 +322,10 @@ class _ControlState extends State<Control> {
                     //   ),
                     // ),
                     IconButton(
-                      onPressed: () => _sendData('5'),
+                      onPressed: () {
+                        _sendData(isGrab ? '5' : '6');
+                        isGrab = !isGrab;
+                      },
                       icon: Container(
                         height: 30,
                         width: 60,

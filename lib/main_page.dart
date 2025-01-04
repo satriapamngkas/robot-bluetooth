@@ -293,11 +293,11 @@ class _MainPageState extends State<MainPage> {
                                     device.address);
                             _deviceConnected = device;
                             _devices = [];
-                            _isConnecting = false;
+                            // _isConnecting = false;
 
                             setState(() {
                               _connection = connection;
-                              _isConnected = true;
+                              _isConnected = connection.isConnected;
                               _isConnecting = false;
                             });
 

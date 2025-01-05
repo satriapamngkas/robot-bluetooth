@@ -47,11 +47,9 @@ class _ControlState extends State<Control> {
   }
 
   void _startReceivingData() {
-    print('start receiving data');
     widget.connection.input!.listen(
       (event) {
         buffer += String.fromCharCodes(event);
-        print('####### $buffer');
         if (buffer.contains('\n')) {
           _processReceivedData(buffer.trim());
           buffer = '';
@@ -60,18 +58,20 @@ class _ControlState extends State<Control> {
         // _processReceivedData(buffer);
       },
       onDone: () {
-        print('Bluetooth connection closed.');
+        if (kDebugMode) {
+          print('Bluetooth connection closed.');
+        }
       },
       onError: (error) {
-        print('Error receiving data: $error');
+        if (kDebugMode) {
+          print('Error receiving data: $error');
+        }
       },
       cancelOnError: true,
     );
   }
 
   void _processReceivedData(String data) {
-    print('start processing data');
-    // Pisahkan string berdasarkan delimiter '#'
     List<String> parts = data.split('#');
     if (parts.length == 4) {
       setState(() {
@@ -117,16 +117,19 @@ class _ControlState extends State<Control> {
       isManual = value;
       if (isManual) {
         _sendData('M');
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight
-        ]);
+        SystemChrome.setPreferredOrientations(
+          [
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ],
+        );
       } else {
         _sendData('A');
-        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-        // Mulai kembali menerima data jika beralih ke mode otomatis
-        // _startReceivingData();
+        SystemChrome.setPreferredOrientations(
+          [
+            DeviceOrientation.portraitUp,
+          ],
+        );
       }
     });
   }
@@ -315,79 +318,92 @@ class _ControlState extends State<Control> {
                 ),
               ],
             ),
-            Column(
+            Row(
               children: [
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  height: 30,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    color: const Color.fromRGBO(36, 51, 44, 71),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'Tangan',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-
-                IconButton(
-                  onPressed: () => _sendData('1'),
-                  icon: Image.asset(
-                    'assets/up.png',
-                    height: 60,
-                    width: 60,
-                    color: const Color.fromRGBO(4, 42, 27, 1),
-                  ),
-                ),
-                // const SizedBox(height: 5.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Column(
                   children: [
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      height: 30,
+                      width: 100,
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(36, 51, 44, 71),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Tangan',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+
                     IconButton(
-                      onPressed: () => _sendData('2'),
+                      onPressed: () => _sendData('1'),
                       icon: Image.asset(
-                        'assets/left.png',
+                        'assets/up.png',
                         height: 60,
                         width: 60,
                         color: const Color.fromRGBO(4, 42, 27, 1),
                       ),
                     ),
-                    // IconButton(
-                    //   onPressed: () => _sendData('5'),
-                    //   icon: const Icon(
-                    //     Icons.pause,
-                    //     size: 70,
-                    //     color: Color.fromRGBO(4, 42, 27, 1),
-                    //   ),
-                    // ),
-                    IconButton(
-                      onPressed: () {
-                        _sendData(isGrab ? '5' : '6');
-                        isGrab = !isGrab;
-                      },
-                      icon: Container(
-                        height: 30,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: const Color.fromRGBO(36, 51, 44, 71),
-                          borderRadius: BorderRadius.circular(20),
+                    // const SizedBox(height: 5.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () => _sendData('2'),
+                          icon: Image.asset(
+                            'assets/left.png',
+                            height: 60,
+                            width: 60,
+                            color: const Color.fromRGBO(4, 42, 27, 1),
+                          ),
                         ),
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'CAPIT',
-                          style: TextStyle(color: Colors.white),
+                        // IconButton(
+                        //   onPressed: () => _sendData('5'),
+                        //   icon: const Icon(
+                        //     Icons.pause,
+                        //     size: 70,
+                        //     color: Color.fromRGBO(4, 42, 27, 1),
+                        //   ),
+                        // ),
+                        IconButton(
+                          onPressed: () {
+                            _sendData(isGrab ? '5' : '6');
+                            isGrab = !isGrab;
+                          },
+                          icon: Container(
+                            height: 30,
+                            width: 60,
+                            decoration: BoxDecoration(
+                              color: const Color.fromRGBO(36, 51, 44, 71),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Text(
+                              'CAPIT',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
 
+                        IconButton(
+                          onPressed: () => _sendData('3'),
+                          icon: Image.asset(
+                            'assets/right.png',
+                            height: 60,
+                            width: 60,
+                            color: const Color.fromRGBO(4, 42, 27, 1),
+                          ),
+                        ),
+                      ],
+                    ),
                     IconButton(
-                      onPressed: () => _sendData('3'),
+                      onPressed: () => _sendData('4'),
                       icon: Image.asset(
-                        'assets/right.png',
+                        'assets/down.png',
                         height: 60,
                         width: 60,
                         color: const Color.fromRGBO(4, 42, 27, 1),
@@ -395,15 +411,29 @@ class _ControlState extends State<Control> {
                     ),
                   ],
                 ),
-                IconButton(
-                  onPressed: () => _sendData('4'),
-                  icon: Image.asset(
-                    'assets/down.png',
-                    height: 60,
-                    width: 60,
-                    color: const Color.fromRGBO(4, 42, 27, 1),
-                  ),
-                ),
+                const SizedBox(width: 10),
+                Column(
+                  children: [
+                    IconButton(
+                      onPressed: () => _sendData('7'),
+                      icon: Image.asset(
+                        'assets/up.png',
+                        height: 60,
+                        width: 60,
+                        color: const Color.fromRGBO(4, 42, 27, 1),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => _sendData('8'),
+                      icon: Image.asset(
+                        'assets/down.png',
+                        height: 60,
+                        width: 60,
+                        color: const Color.fromRGBO(4, 42, 27, 1),
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           ],

@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class Control extends StatefulWidget {
   const Control({
@@ -22,41 +25,106 @@ class Control extends StatefulWidget {
 }
 
 class _ControlState extends State<Control> {
+  String currentColor = 'Tidak ada';
+  int sortedRed = 0;
+  int sortedGreen = 0;
+  int sortedBlue = 0;
+
+  late DateFormat dateFormat;
+
   bool isManual = false;
   bool isGrab = false;
-  // bool _bluetoothState = false;
-  // bool _isConnecting = false;
+  String receivedData = '';
   int times = 0;
-
-  void _sendData(String data) async {
-    if (widget.connection == null ||
-        !(widget.connection.isConnected ?? false)) {
-      print('Bluetooth belum terhubung.');
-      return;
-    }
-
-    try {
-      widget.connection.output.add(ascii.encode(data));
-      await widget.connection.output.allSent;
-      print('Data sent: $data');
-    } catch (e) {
-      print('Gagal mengirim data: $e');
-    }
-  }
 
   @override
   void initState() {
-    // if (MediaQuery.of(context).orientation == Orientation.portrait) {
-    // SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
-    // } else {
-    //   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    // }
+    dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
+    initializeDateFormatting();
     super.initState();
+  }
+
+  void _startReceivingData() {
+    widget.connection.input!.listen(
+      (event) {
+        String data = String.fromCharCodes(event).trim();
+        _processReceivedData(data); // Proses data yang diterima
+      },
+      onDone: () {
+        print('Bluetooth connection closed.');
+      },
+      onError: (error) {
+        print('Error receiving data: $error');
+      },
+      cancelOnError: true,
+    );
+  }
+
+  void _processReceivedData(String data) {
+    // Pisahkan string berdasarkan delimiter '#'
+    List<String> parts = data.split('#');
+    if (parts.length == 4) {
+      setState(() {
+        currentColor = parts[0];
+        sortedRed = int.tryParse(parts[1]) ?? 0;
+        sortedGreen = int.tryParse(parts[2]) ?? 0;
+        sortedBlue = int.tryParse(parts[3]) ?? 0;
+      });
+
+      if (kDebugMode) {
+        print(
+            'Color: $currentColor, Value1: $sortedRed, Value2: $sortedGreen, Value3: $sortedBlue');
+      }
+    } else {
+      if (kDebugMode) {
+        print('Format data tidak sesuai: $data');
+      }
+    }
+  }
+
+  void _sendData(String data) async {
+    if (!(widget.connection.isConnected)) {
+      if (kDebugMode) {
+        print('Bluetooth belum terhubung.');
+      }
+      return;
+    }
+    try {
+      widget.connection.output.add(ascii.encode(data));
+      await widget.connection.output.allSent;
+      if (kDebugMode) {
+        print('Data sent: $data');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Gagal mengirim data: $e');
+      }
+    }
+  }
+
+  void _handleModeChange(bool value) {
+    setState(() {
+      isManual = value;
+      if (isManual) {
+        _sendData('M');
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight
+        ]);
+      } else {
+        _sendData('A');
+        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+        // Mulai kembali menerima data jika beralih ke mode otomatis
+        _startReceivingData();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    var dateTime = DateTime.now();
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -68,18 +136,18 @@ class _ControlState extends State<Control> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: isManual ? 24 : 50,
-          title: const Row(
+          title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'ZonaSort',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
-                'Kamis, 2 Januari 2025',
-                style: TextStyle(
+                dateFormat.format(dateTime),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -121,22 +189,7 @@ class _ControlState extends State<Control> {
                       child: SwitchListTile(
                         // activeColor: Color.fromRGBO(48, 23, 242, 1),
                         value: isManual,
-                        onChanged: (bool value) {
-                          setState(() {
-                            isManual = value;
-                            if (isManual) {
-                              _sendData('M');
-                              SystemChrome.setPreferredOrientations([
-                                DeviceOrientation.landscapeLeft,
-                                DeviceOrientation.landscapeRight
-                              ]);
-                            } else {
-                              _sendData('A');
-                              SystemChrome.setPreferredOrientations(
-                                  [DeviceOrientation.portraitUp]);
-                            }
-                          });
-                        },
+                        onChanged: _handleModeChange,
                         // tileColor: Colors.green,
                         title: Row(
                           children: [
@@ -218,7 +271,7 @@ class _ControlState extends State<Control> {
                       icon: Image.asset(
                         'assets/left.png',
                         height: 60,
-                        width: 30,
+                        width: 60,
                         color: const Color.fromRGBO(4, 42, 27, 1),
                       ),
                     ),
@@ -226,30 +279,10 @@ class _ControlState extends State<Control> {
                       onPressed: () => _sendData('S'),
                       icon: const Icon(
                         Icons.pause,
-
                         size: 70,
                         color: Color.fromRGBO(4, 42, 27, 1),
-                        // color: Colors.transparent,
                       ),
                     ),
-                    // IconButton(
-                    //   onPressed: () {},
-                    //   icon: Container(
-                    //     height: 30,
-                    //     width: 60,
-                    //     decoration: BoxDecoration(
-                    //       // color: const Color.fromRGBO(36, 51, 44, 71),
-                    //       color: Colors.transparent,
-                    //       borderRadius: BorderRadius.circular(20),
-                    //     ),
-                    //     alignment: Alignment.center,
-                    //     child: const Text(
-                    //       'RODA',
-                    //       style: TextStyle(color: Colors.transparent),
-                    //     ),
-                    //   ),
-                    // ),
-
                     IconButton(
                       onPressed: () => _sendData('R'),
                       icon: Image.asset(
@@ -370,47 +403,85 @@ class _ControlState extends State<Control> {
   }
 
   Widget sortedAmount() {
-    return Center(
-      child: Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            color: const Color.fromRGBO(18, 132, 233, 0.65)),
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.5,
-        child: Column(
-          children: [
-            Image.asset(
-              'assets/sortir_icon.png',
-              height: 150,
-              width: 150,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 10,
+          ),
+          buildSortedCard(
+            color: currentColor == 'Merah'
+                ? Colors.red
+                : currentColor == 'Biru'
+                    ? Colors.blue
+                    : currentColor == 'Hijau'
+                        ? Colors.green
+                        : null,
+            title: 'Warna saat ini',
+            value: currentColor,
+          ),
+          buildSortedCard(
+            color: Colors.red,
+            title: 'Merah yang telah disortir',
+            value: '$sortedRed',
+          ),
+          buildSortedCard(
+            color: Colors.green,
+            title: 'Hijau yang telah disortir',
+            value: '$sortedGreen',
+          ),
+          buildSortedCard(
+            color: Colors.blue,
+            title: 'Biru yang telah disortir',
+            value: '$sortedBlue',
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildSortedCard({
+    required Color? color,
+    required String title,
+    required String value,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: const Color.fromRGBO(18, 132, 233, 0.65),
+      ),
+      width: 250, // Tetapkan ukuran lebar yang lebih kecil
+      height: 300, // Tetapkan tinggi tetap
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/sortir_icon.png',
+            color: color,
+            height: 150,
+            width: 150,
+          ),
+          Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: const Color.fromRGBO(147, 207, 249, 0.71),
             ),
-            Container(
-              padding: const EdgeInsets.all(13),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: const Color.fromRGBO(147, 207, 249, 0.71),
+            child: Text(
+              '$title\n$value',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: GoogleFonts.inter().fontFamily,
+                fontSize: 20,
               ),
-              child: Column(
-                children: [
-                  Text(
-                    '10.000',
-                    style: TextStyle(
-                      fontFamily: GoogleFonts.inter().fontFamily,
-                      fontSize: 24,
-                    ),
-                  ),
-                  Text(
-                    'Barang disortir',
-                    style: TextStyle(
-                      fontFamily: GoogleFonts.inter().fontFamily,
-                      fontSize: 24,
-                    ),
-                  )
-                ],
-              ),
-            )
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

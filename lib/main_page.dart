@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter_application/pages/control.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -13,10 +15,12 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  late DateFormat dateFormat;
+
   final _bluetooth = FlutterBluetoothSerial.instance;
   bool _bluetoothState = false;
   bool _isConnecting = false;
-  bool _isConnected = false;
+  // bool _isConnected = false;
   BluetoothConnection? _connection;
   List<BluetoothDevice> _devices = [];
   BluetoothDevice? _deviceConnected;
@@ -51,6 +55,9 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
+
+    // initializeDateFormatting();
 
     _requestPermission();
 
@@ -76,6 +83,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    var dateTime = DateTime.now();
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -86,18 +94,18 @@ class _MainPageState extends State<MainPage> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Row(
+          title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'ZonaSort',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
-                'Kamis, 2 Januari 2025',
-                style: TextStyle(
+                dateFormat.format(dateTime),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -297,7 +305,7 @@ class _MainPageState extends State<MainPage> {
 
                             setState(() {
                               _connection = connection;
-                              _isConnected = connection.isConnected;
+                              // _isConnected = connection.isConnected;
                               _isConnecting = false;
                             });
 

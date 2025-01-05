@@ -36,19 +36,28 @@ class _ControlState extends State<Control> {
   bool isGrab = false;
   String receivedData = '';
   int times = 0;
+  String buffer = '';
 
   @override
   void initState() {
     dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
     initializeDateFormatting();
+    _startReceivingData();
     super.initState();
   }
 
   void _startReceivingData() {
+    print('start receiving data');
     widget.connection.input!.listen(
       (event) {
-        String data = String.fromCharCodes(event).trim();
-        _processReceivedData(data); // Proses data yang diterima
+        buffer += String.fromCharCodes(event);
+        print('####### $buffer');
+        if (buffer.contains('\n')) {
+          _processReceivedData(buffer.trim());
+          buffer = '';
+        }
+        // buffer = String.fromCharCodes(event).trim();
+        // _processReceivedData(buffer);
       },
       onDone: () {
         print('Bluetooth connection closed.');
@@ -61,14 +70,15 @@ class _ControlState extends State<Control> {
   }
 
   void _processReceivedData(String data) {
+    print('start processing data');
     // Pisahkan string berdasarkan delimiter '#'
     List<String> parts = data.split('#');
     if (parts.length == 4) {
       setState(() {
         currentColor = parts[0];
-        sortedRed = int.tryParse(parts[1]) ?? 0;
-        sortedGreen = int.tryParse(parts[2]) ?? 0;
-        sortedBlue = int.tryParse(parts[3]) ?? 0;
+        sortedRed = int.tryParse(parts[1]) ?? 1;
+        sortedGreen = int.tryParse(parts[2]) ?? 1;
+        sortedBlue = int.tryParse(parts[3]) ?? 1;
       });
 
       if (kDebugMode) {
@@ -116,7 +126,7 @@ class _ControlState extends State<Control> {
         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
         // Mulai kembali menerima data jika beralih ke mode otomatis
-        _startReceivingData();
+        // _startReceivingData();
       }
     });
   }
@@ -403,6 +413,7 @@ class _ControlState extends State<Control> {
   }
 
   Widget sortedAmount() {
+    // _startReceivingData();
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(

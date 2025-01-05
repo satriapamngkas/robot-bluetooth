@@ -31,13 +31,13 @@ class _MainPageState extends State<MainPage> {
     setState(() => _devices = res);
   }
 
-  void _receiveData() {
-    _connection?.input?.listen((event) {
-      if (String.fromCharCodes(event) == "p") {
-        setState(() => times = times + 1);
-      }
-    });
-  }
+  // void _receiveData() {
+  //   _connection?.input?.listen((event) {
+  //     if (String.fromCharCodes(event) == "p") {
+  //       setState(() => times = times + 1);
+  //     }
+  //   });
+  // }
 
   void _sendData(String data) {
     if (_connection?.isConnected ?? false) {
@@ -309,7 +309,7 @@ class _MainPageState extends State<MainPage> {
                               _isConnecting = false;
                             });
 
-                            _receiveData();
+                            // _receiveData();
 
                             // setState(() {
                             //   _isConnecting = false;

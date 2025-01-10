@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_application/widgets/custom_app_bar.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -40,22 +41,22 @@ class _ControlState extends State<Control> {
 
   @override
   void initState() {
-    dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
-    initializeDateFormatting();
     _startReceivingData();
+    _handleModeChange(false);
     super.initState();
   }
 
   void _startReceivingData() {
-    widget.connection.input!.listen(
+    widget.connection.input?.listen(
       (event) {
         buffer += String.fromCharCodes(event);
-        if (buffer.contains('\n')) {
-          _processReceivedData(buffer.trim());
-          buffer = '';
+        // Cek jika buffer berisi data lengkap (dengan delimiter '\n')
+        while (buffer.contains('\n')) {
+          final endIndex = buffer.indexOf('\n');
+          final data = buffer.substring(0, endIndex).trim();
+          buffer = buffer.substring(endIndex + 1);
+          _processReceivedData(data);
         }
-        // buffer = String.fromCharCodes(event).trim();
-        // _processReceivedData(buffer);
       },
       onDone: () {
         if (kDebugMode) {
@@ -72,42 +73,42 @@ class _ControlState extends State<Control> {
   }
 
   void _processReceivedData(String data) {
-    List<String> parts = data.split('#');
+    final parts = data.split('#');
     if (parts.length == 4) {
       setState(() {
         currentColor = parts[0];
-        sortedRed = int.tryParse(parts[1]) ?? 1;
-        sortedGreen = int.tryParse(parts[2]) ?? 1;
-        sortedBlue = int.tryParse(parts[3]) ?? 1;
+        sortedRed = int.tryParse(parts[1]) ?? 0;
+        sortedGreen = int.tryParse(parts[2]) ?? 0;
+        sortedBlue = int.tryParse(parts[3]) ?? 0;
       });
 
       if (kDebugMode) {
         print(
-            'Color: $currentColor, Value1: $sortedRed, Value2: $sortedGreen, Value3: $sortedBlue');
+            'Color: $currentColor, Red: $sortedRed, Green: $sortedGreen, Blue: $sortedBlue');
       }
     } else {
       if (kDebugMode) {
-        print('Format data tidak sesuai: $data');
+        print('Invalid data format: $data');
       }
     }
   }
 
   void _sendData(String data) async {
-    if (!(widget.connection.isConnected)) {
+    if (!widget.connection.isConnected) {
       if (kDebugMode) {
-        print('Bluetooth belum terhubung.');
+        print('Bluetooth is not connected.');
       }
       return;
     }
     try {
-      widget.connection.output.add(ascii.encode(data));
+      widget.connection.output.add(utf8.encode('$data\n'));
       await widget.connection.output.allSent;
       if (kDebugMode) {
         print('Data sent: $data');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Gagal mengirim data: $e');
+        print('Failed to send data: $e');
       }
     }
   }
@@ -115,29 +116,22 @@ class _ControlState extends State<Control> {
   void _handleModeChange(bool value) {
     setState(() {
       isManual = value;
-      if (isManual) {
-        _sendData('M');
-        SystemChrome.setPreferredOrientations(
-          [
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight,
-          ],
-        );
-      } else {
-        _sendData('A');
-        SystemChrome.setPreferredOrientations(
-          [
-            DeviceOrientation.portraitUp,
-          ],
-        );
-      }
+      final mode = isManual ? 'M' : 'A';
+      _sendData(mode);
+      SystemChrome.setPreferredOrientations(
+        isManual
+            ? [
+                DeviceOrientation.landscapeLeft,
+                DeviceOrientation.landscapeRight
+              ]
+            : [DeviceOrientation.portraitUp],
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    var dateTime = DateTime.now();
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -147,39 +141,8 @@ class _ControlState extends State<Control> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          toolbarHeight: isManual ? 24 : 50,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'ZonaSort',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                dateFormat.format(dateTime),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.white,
-                  Colors.white.withOpacity(0.0),
-                  // Colors.transparent,
-                ],
-              ),
-            ),
-          ),
+        appBar: CustomAppBar(
+          isManual: isManual,
         ),
         body: Center(
           child: Padding(
@@ -267,7 +230,7 @@ class _ControlState extends State<Control> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => _sendData('F'),
+                  onPressed: () => _sendData('AF'),
                   icon: Image.asset(
                     'assets/up.png',
                     height: 60,
@@ -280,7 +243,7 @@ class _ControlState extends State<Control> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      onPressed: () => _sendData('L'),
+                      onPressed: () => _sendData('AL'),
                       icon: Image.asset(
                         'assets/left.png',
                         height: 60,
@@ -289,7 +252,7 @@ class _ControlState extends State<Control> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _sendData('S'),
+                      onPressed: () => _sendData('AS'),
                       icon: const Icon(
                         Icons.pause,
                         size: 70,
@@ -297,7 +260,7 @@ class _ControlState extends State<Control> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _sendData('R'),
+                      onPressed: () => _sendData('AR'),
                       icon: Image.asset(
                         'assets/right.png',
                         height: 60,
@@ -308,7 +271,7 @@ class _ControlState extends State<Control> {
                   ],
                 ),
                 IconButton(
-                  onPressed: () => _sendData('B'),
+                  onPressed: () => _sendData('AB'),
                   icon: Image.asset(
                     'assets/down.png',
                     height: 60,
@@ -340,7 +303,7 @@ class _ControlState extends State<Control> {
                     ),
 
                     IconButton(
-                      onPressed: () => _sendData('1'),
+                      onPressed: () => _sendData('A1'),
                       icon: Image.asset(
                         'assets/up.png',
                         height: 60,
@@ -353,7 +316,7 @@ class _ControlState extends State<Control> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          onPressed: () => _sendData('2'),
+                          onPressed: () => _sendData('A2'),
                           icon: Image.asset(
                             'assets/left.png',
                             height: 60,
@@ -362,7 +325,7 @@ class _ControlState extends State<Control> {
                           ),
                         ),
                         // IconButton(
-                        //   onPressed: () => _sendData('5'),
+                        //   onPressed: () => _sendData('A5'),
                         //   icon: const Icon(
                         //     Icons.pause,
                         //     size: 70,
@@ -371,7 +334,7 @@ class _ControlState extends State<Control> {
                         // ),
                         IconButton(
                           onPressed: () {
-                            _sendData(isGrab ? '5' : '6');
+                            _sendData(isGrab ? 'A5' : 'A6');
                             isGrab = !isGrab;
                           },
                           icon: Container(
@@ -390,7 +353,7 @@ class _ControlState extends State<Control> {
                         ),
 
                         IconButton(
-                          onPressed: () => _sendData('3'),
+                          onPressed: () => _sendData('A3'),
                           icon: Image.asset(
                             'assets/right.png',
                             height: 60,
@@ -401,7 +364,7 @@ class _ControlState extends State<Control> {
                       ],
                     ),
                     IconButton(
-                      onPressed: () => _sendData('4'),
+                      onPressed: () => _sendData('A4'),
                       icon: Image.asset(
                         'assets/down.png',
                         height: 60,
@@ -415,7 +378,7 @@ class _ControlState extends State<Control> {
                 Column(
                   children: [
                     IconButton(
-                      onPressed: () => _sendData('7'),
+                      onPressed: () => _sendData('A7'),
                       icon: Image.asset(
                         'assets/up.png',
                         height: 60,
@@ -424,7 +387,7 @@ class _ControlState extends State<Control> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _sendData('8'),
+                      onPressed: () => _sendData('A8'),
                       icon: Image.asset(
                         'assets/down.png',
                         height: 60,

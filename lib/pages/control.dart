@@ -7,7 +7,6 @@ import 'package:flutter_application/widgets/custom_app_bar.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
 class Control extends StatefulWidget {
   const Control({
@@ -94,21 +93,21 @@ class _ControlState extends State<Control> {
   }
 
   void _sendData(String data) async {
-    if (!widget.connection.isConnected) {
+    if (!(widget.connection.isConnected)) {
       if (kDebugMode) {
-        print('Bluetooth is not connected.');
+        print('Bluetooth belum terhubung.');
       }
       return;
     }
     try {
-      widget.connection.output.add(utf8.encode('$data\n'));
+      widget.connection.output.add(ascii.encode(data));
       await widget.connection.output.allSent;
       if (kDebugMode) {
         print('Data sent: $data');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to send data: $e');
+        print('Gagal mengirim data: $e');
       }
     }
   }
@@ -230,7 +229,7 @@ class _ControlState extends State<Control> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => _sendData('AF'),
+                  onPressed: () => _sendData('F'),
                   icon: Image.asset(
                     'assets/up.png',
                     height: 60,
@@ -243,7 +242,7 @@ class _ControlState extends State<Control> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      onPressed: () => _sendData('AL'),
+                      onPressed: () => _sendData('L'),
                       icon: Image.asset(
                         'assets/left.png',
                         height: 60,
@@ -252,7 +251,7 @@ class _ControlState extends State<Control> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _sendData('AS'),
+                      onPressed: () => _sendData('S'),
                       icon: const Icon(
                         Icons.pause,
                         size: 70,
@@ -260,7 +259,7 @@ class _ControlState extends State<Control> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _sendData('AR'),
+                      onPressed: () => _sendData('R'),
                       icon: Image.asset(
                         'assets/right.png',
                         height: 60,
@@ -271,7 +270,7 @@ class _ControlState extends State<Control> {
                   ],
                 ),
                 IconButton(
-                  onPressed: () => _sendData('AB'),
+                  onPressed: () => _sendData('B'),
                   icon: Image.asset(
                     'assets/down.png',
                     height: 60,
@@ -303,7 +302,7 @@ class _ControlState extends State<Control> {
                     ),
 
                     IconButton(
-                      onPressed: () => _sendData('A1'),
+                      onPressed: () => _sendData('1'),
                       icon: Image.asset(
                         'assets/up.png',
                         height: 60,
@@ -316,7 +315,7 @@ class _ControlState extends State<Control> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          onPressed: () => _sendData('A2'),
+                          onPressed: () => _sendData('2'),
                           icon: Image.asset(
                             'assets/left.png',
                             height: 60,
@@ -325,7 +324,7 @@ class _ControlState extends State<Control> {
                           ),
                         ),
                         // IconButton(
-                        //   onPressed: () => _sendData('A5'),
+                        //   onPressed: () => _sendData('5'),
                         //   icon: const Icon(
                         //     Icons.pause,
                         //     size: 70,
@@ -334,7 +333,7 @@ class _ControlState extends State<Control> {
                         // ),
                         IconButton(
                           onPressed: () {
-                            _sendData(isGrab ? 'A5' : 'A6');
+                            _sendData(isGrab ? '5' : '6');
                             isGrab = !isGrab;
                           },
                           icon: Container(
@@ -353,7 +352,7 @@ class _ControlState extends State<Control> {
                         ),
 
                         IconButton(
-                          onPressed: () => _sendData('A3'),
+                          onPressed: () => _sendData('3'),
                           icon: Image.asset(
                             'assets/right.png',
                             height: 60,
@@ -364,7 +363,7 @@ class _ControlState extends State<Control> {
                       ],
                     ),
                     IconButton(
-                      onPressed: () => _sendData('A4'),
+                      onPressed: () => _sendData('4'),
                       icon: Image.asset(
                         'assets/down.png',
                         height: 60,
@@ -378,7 +377,7 @@ class _ControlState extends State<Control> {
                 Column(
                   children: [
                     IconButton(
-                      onPressed: () => _sendData('A7'),
+                      onPressed: () => _sendData('7'),
                       icon: Image.asset(
                         'assets/up.png',
                         height: 60,
@@ -387,7 +386,7 @@ class _ControlState extends State<Control> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _sendData('A8'),
+                      onPressed: () => _sendData('8'),
                       icon: Image.asset(
                         'assets/down.png',
                         height: 60,

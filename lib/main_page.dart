@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:flutter_application/pages/control.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 import 'package:permission_handler/permission_handler.dart';
@@ -38,12 +36,6 @@ class _MainPageState extends State<MainPage> {
   //     }
   //   });
   // }
-
-  void _sendData(String data) {
-    if (_connection?.isConnected ?? false) {
-      _connection?.output.add(ascii.encode(data));
-    }
-  }
 
   void _requestPermission() async {
     await Permission.location.request();
@@ -331,19 +323,19 @@ class _MainPageState extends State<MainPage> {
           );
   }
 
-  Widget _inputSerial() {
-    return ListTile(
-      trailing: TextButton(
-        child: const Text('Reload'),
-        onPressed: () => setState(() => times = 0),
-      ),
-      title: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Text(
-          "Tekan Button (x$times)",
-          style: const TextStyle(fontSize: 18.0),
-        ),
-      ),
-    );
-  }
+  // Widget _inputSerial() {
+  //   return ListTile(
+  //     trailing: TextButton(
+  //       child: const Text('Reload'),
+  //       onPressed: () => setState(() => times = 0),
+  //     ),
+  //     title: Padding(
+  //       padding: const EdgeInsets.symmetric(vertical: 16.0),
+  //       child: Text(
+  //         "Tekan Button (x$times)",
+  //         style: const TextStyle(fontSize: 18.0),
+  //       ),
+  //     ),
+  //   );
+  // }
 }

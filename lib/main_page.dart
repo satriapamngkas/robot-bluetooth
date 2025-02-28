@@ -270,7 +270,7 @@ class _MainPageState extends State<MainPage> {
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
             child: Container(
-              color: const Color.fromRGBO(30, 144, 243, 94),
+              color: const Color.fromRGBO(30, 144, 243, 0.9),
               child: Column(
                 children: [
                   ...[
